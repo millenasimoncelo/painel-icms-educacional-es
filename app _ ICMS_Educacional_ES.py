@@ -624,7 +624,7 @@ elif menu == "📊 IQE":
             fig_tend.update_layout(height=420, template="simple_white",
                                    xaxis_title="Ano de Referência", yaxis_title="IQE",
                                    font=dict(family="Montserrat", size=12, color="#3A0057"))
-            st.plotly_chart(fig_tend, use_container_width=True
+            st.plotly_chart(fig_tend, use_container_width=True)
 
                             # ---------------------------------------------------------
 # 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO
@@ -818,6 +818,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
