@@ -128,49 +128,50 @@ if menu == "📘 Entenda o ICMS Educacional":
 elif menu == "📊 IQE":
 
     # ===== CARREGAMENTO DE DADOS =====
- @st.cache_data(show_spinner=True)
-def carregar_dados():
-    caminho = "data/IQE_Painel_Modelo - 19102025.xlsx"
-    base = pd.read_excel(caminho, sheet_name="Base_Painel")
-    dim = pd.read_excel(caminho, sheet_name="Dim_Indicador")
+    @st.cache_data(show_spinner=True)
+    def carregar_dados():
+        caminho = "data/IQE_Painel_Modelo - 19102025.xlsx"
+        base = pd.read_excel(caminho, sheet_name="Base_Painel")
+        dim = pd.read_excel(caminho, sheet_name="Dim_Indicador")
 
-    # --------------------------------------------------
-    # NORMALIZA NOMES DAS COLUNAS (EVITA KeyError)
-    # --------------------------------------------------
-    base.columns = (
-        base.columns
-        .astype(str)
-        .str.strip()
-        .str.replace("\u00a0", "", regex=False)
-    )
-
-    # --------------------------------------------------
-    # CONVERSÃO SEGURA DE DADOS NUMÉRICOS
-    # --------------------------------------------------
-    def _coerce_num(col):
-        if pd.api.types.is_numeric_dtype(col):
-            return col
-        col = (
-            col.astype(str)
+        # --------------------------------------------------
+        # NORMALIZA NOMES DAS COLUNAS (EVITA KeyError)
+        # --------------------------------------------------
+        base.columns = (
+            base.columns
+            .astype(str)
             .str.strip()
-            .replace(
-                {"-": np.nan, "--": np.nan, "—": np.nan, "nan": np.nan, "None": np.nan, "": np.nan}
-            )
-            .str.replace(",", ".", regex=False)
+            .str.replace("\u00a0", "", regex=False)
         )
-        return pd.to_numeric(col, errors="ignore")
 
-    base = base.apply(_coerce_num)
+        # --------------------------------------------------
+        # CONVERSÃO SEGURA DE DADOS NUMÉRICOS
+        # --------------------------------------------------
+        def _coerce_num(col):
+            if pd.api.types.is_numeric_dtype(col):
+                return col
+            col = (
+                col.astype(str)
+                .str.strip()
+                .replace(
+                    {"-": np.nan, "--": np.nan, "—": np.nan, "nan": np.nan, "None": np.nan, "": np.nan}
+                )
+                .str.replace(",", ".", regex=False)
+            )
+            return pd.to_numeric(col, errors="ignore")
 
-    for c in ["IQE", "IQEF", "P", "IMEG", "ICMS_Educacional_Estimado"]:
-        if c in base.columns:
-            base[c] = pd.to_numeric(base[c], errors="coerce")
+        base = base.apply(_coerce_num)
 
-    if "Ano-Referência" in base.columns:
-        base["Ano-Referência"] = pd.to_numeric(base["Ano-Referência"], errors="coerce")
+        for c in ["IQE", "IQEF", "P", "IMEG", "ICMS_Educacional_Estimado"]:
+            if c in base.columns:
+                base[c] = pd.to_numeric(base[c], errors="coerce")
 
-    return base, dim
+        if "Ano-Referência" in base.columns:
+            base["Ano-Referência"] = pd.to_numeric(base["Ano-Referência"], errors="coerce")
 
+        return base, dim
+
+    base, dim = carregar_dados()
     # ===== SIDEBAR DO PAINEL =====
     st.sidebar.title("Painel IQE – Municípios")
     municipios = sorted(base["Município"].astype(str).unique())
@@ -765,6 +766,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
