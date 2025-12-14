@@ -423,7 +423,7 @@ def carregar_dados():
             unsafe_allow_html=True
         )
 
-        # ---------------------------------------------------------
+    # ---------------------------------------------------------
     # 3️⃣ IQEF DETALHADO – Radar + Barras ΔDESVFSEt
     # ---------------------------------------------------------
     with tab_iqef:
@@ -644,7 +644,7 @@ def carregar_dados():
             st.plotly_chart(fig_tend, use_container_width=True)
 
 # ---------------------------------------------------------
-# 💰 ICMS EDUCACIONAL – IMPACTO FINANCEIRO
+# 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO
 # ---------------------------------------------------------
 with tab_icms:
     st.subheader("💰 ICMS Educacional – Impacto Financeiro")
@@ -652,7 +652,7 @@ with tab_icms:
     col_icms = "ICMS_Educacional_Estimado"
 
     if col_icms not in base.columns:
-        st.error(f"Coluna '{col_icms}' não encontrada na base.")
+        st.error(f"Coluna '{col_icms}' não encontrada na base de dados.")
         st.stop()
 
     dados_icms = base[
@@ -670,16 +670,15 @@ with tab_icms:
     delta_abs = v_2026 - v_2025 if np.isfinite(v_2025) and np.isfinite(v_2026) else np.nan
     delta_pct = (delta_abs / v_2025 * 100) if v_2025 and np.isfinite(delta_abs) else np.nan
 
-    col1, col2, col3, col4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
-    col1.metric("ICMS Educacional 2025 (ref. 2023)", f"R$ {v_2025:,.2f}")
-    col2.metric("ICMS Educacional 2026 (ref. 2024)", f"R$ {v_2026:,.2f}")
-    col3.metric("Δ Absoluto", f"R$ {delta_abs:,.2f}")
-    col4.metric("Δ Percentual", f"{delta_pct:.2f}%")
+    c1.metric("ICMS Educacional 2025 (ref. 2023)", f"R$ {v_2025:,.2f}")
+    c2.metric("ICMS Educacional 2026 (ref. 2024)", f"R$ {v_2026:,.2f}")
+    c3.metric("Δ Absoluto", f"R$ {delta_abs:,.2f}")
+    c4.metric("Δ Percentual", f"{delta_pct:.2f}%")
 
     st.markdown("---")
 
-    # Gráfico comparativo
     fig_icms = go.Figure()
     fig_icms.add_trace(go.Bar(
         x=["2025 (ref. 2023)", "2026 (ref. 2024)"],
@@ -766,6 +765,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
