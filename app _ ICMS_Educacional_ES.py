@@ -22,21 +22,57 @@ st.set_page_config(
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
-html, body, [class*="css"] { font-family: 'Montserrat', sans-serif; color:#5F6169; }
+
+html, body, [class*="css"] { 
+  font-family: 'Montserrat', sans-serif; 
+  color:#5F6169; 
+}
 
 /* Cards */
-.big-card{background:#3A0057;color:#fff;padding:28px;border-radius:14px;text-align:center;box-shadow:0 0 12px rgba(0,0,0,.15);}
-.small-card,.white-card{padding:22px;border-radius:12px;text-align:center;border:1px solid #E0E0E0;box-shadow:0 0 6px rgba(0,0,0,.08);}
-.small-card{background:#F3F3F3;color:#3A0057;}
-.white-card{background:#fff;color:#3A0057;}
+.big-card{
+  background:#3A0057;
+  color:#fff;
+  padding:28px;
+  border-radius:14px;
+  text-align:center;
+  box-shadow:0 0 12px rgba(0,0,0,.15);
+}
+
+/* ✅ CORREÇÃO: garante que qualquer texto dentro do card roxo fique branco
+   (evita o CSS global sobrescrever h1/h3/etc.) */
+.big-card *{
+  color:#ffffff !important;
+}
+
+.small-card,.white-card{
+  padding:22px;
+  border-radius:12px;
+  text-align:center;
+  border:1px solid #E0E0E0;
+  box-shadow:0 0 6px rgba(0,0,0,.08);
+}
+.small-card{
+  background:#F3F3F3;
+  color:#3A0057;
+}
+.white-card{
+  background:#fff;
+  color:#3A0057;
+}
 
 /* Abas */
 .stTabs [data-baseweb="tab-list"] { gap: 10px; }
 .stTabs [data-baseweb="tab"] {
-  background:#fff; color:#3A0057; border:1px solid #E5D9EF;
-  border-radius:10px; padding:10px 16px;
+  background:#fff; 
+  color:#3A0057; 
+  border:1px solid #E5D9EF;
+  border-radius:10px; 
+  padding:10px 16px;
 }
-.stTabs [aria-selected="true"] { background:#3A0057 !important; color:#fff !important; }
+.stTabs [aria-selected="true"] { 
+  background:#3A0057 !important; 
+  color:#fff !important; 
+}
 
 /* Centraliza tabela */
 .dataframe td, .dataframe th {
@@ -658,6 +694,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
