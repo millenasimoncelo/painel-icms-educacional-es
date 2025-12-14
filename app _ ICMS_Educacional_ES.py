@@ -626,127 +626,58 @@ elif menu == "📊 IQE":
                                    font=dict(family="Montserrat", size=12, color="#3A0057"))
             st.plotly_chart(fig_tend, use_container_width=True)
 
-                            # ---------------------------------------------------------
-# 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO
+# ---------------------------------------------------------
+# 💰 ICMS EDUCACIONAL – IMPACTO FINANCEIRO
 # ---------------------------------------------------------
 with tab_icms:
-    st.title("💰 ICMS Educacional – Impacto Financeiro do IQE")
-    st.caption(
-        "Valores estimados de ICMS Educacional com base no desempenho do município no IQE."
-    )
+    st.subheader("💰 ICMS Educacional – Impacto Financeiro")
 
     col_icms = "ICMS_Educacional_Estimado"
 
-    # Base ICMS
+    if col_icms not in base.columns:
+        st.error(f"Coluna '{col_icms}' não encontrada na base.")
+        st.stop()
+
     dados_icms = base[
         ["Município", "Ano-Referência", "IQE", col_icms]
-    ].dropna(subset=[col_icms])
+    ].dropna(subset=[col_icms]).copy()
 
-    dados_2023 = dados_icms[dados_icms["Ano-Referência"] == 2023]
-    dados_2024 = dados_icms[dados_icms["Ano-Referência"] == 2024]
+    dados_icms["Ano-Referência"] = dados_icms["Ano-Referência"].astype(int)
 
-    icms_2025 = valor_municipio(dados_2023, col_icms)
-    icms_2026 = valor_municipio(dados_2024, col_icms)
+    icms_2025 = dados_icms[dados_icms["Ano-Referência"] == 2023]
+    icms_2026 = dados_icms[dados_icms["Ano-Referência"] == 2024]
 
-    delta_abs = icms_2026 - icms_2025 if pd.notna(icms_2026) and pd.notna(icms_2025) else np.nan
-    delta_pct = (delta_abs / icms_2025 * 100) if icms_2025 and pd.notna(delta_abs) else np.nan
+    v_2025 = valor_municipio(icms_2025, col_icms)
+    v_2026 = valor_municipio(icms_2026, col_icms)
 
-    rank_2025, total_mun = ranking(dados_2023, col_icms)
-    rank_2026, _ = ranking(dados_2024, col_icms)
-    delta_rank = rank_2025 - rank_2026 if rank_2025 and rank_2026 else None
+    delta_abs = v_2026 - v_2025 if np.isfinite(v_2025) and np.isfinite(v_2026) else np.nan
+    delta_pct = (delta_abs / v_2025 * 100) if v_2025 and np.isfinite(delta_abs) else np.nan
 
-    share_2025 = icms_2025 / dados_2023[col_icms].sum() if icms_2025 else np.nan
-    share_2026 = icms_2026 / dados_2024[col_icms].sum() if icms_2026 else np.nan
+    col1, col2, col3, col4 = st.columns(4)
 
-    # -------------------------
-    # CARDS – VALORES
-    # -------------------------
-    c1, c2, c3, c4 = st.columns(4)
+    col1.metric("ICMS Educacional 2025 (ref. 2023)", f"R$ {v_2025:,.2f}")
+    col2.metric("ICMS Educacional 2026 (ref. 2024)", f"R$ {v_2026:,.2f}")
+    col3.metric("Δ Absoluto", f"R$ {delta_abs:,.2f}")
+    col4.metric("Δ Percentual", f"{delta_pct:.2f}%")
 
-    c1.markdown(f"""
-    <div class="white-card">
-        <h4>ICMS Educacional 2025<br><small>(ref. IQE 2023)</small></h4>
-        <h2>R$ {icms_2025:,.0f}</h2>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("---")
 
-    c2.markdown(f"""
-    <div class="white-card">
-        <h4>ICMS Educacional 2026<br><small>(estimado – ref. IQE 2024)</small></h4>
-        <h2>R$ {icms_2026:,.0f}</h2>
-    </div>
-    """, unsafe_allow_html=True)
+    # Gráfico comparativo
+    fig_icms = go.Figure()
+    fig_icms.add_trace(go.Bar(
+        x=["2025 (ref. 2023)", "2026 (ref. 2024)"],
+        y=[v_2025, v_2026],
+        marker_color=["#C2A4CF", "#3A0057"]
+    ))
 
-    c3.markdown(f"""
-    <div class="white-card">
-        <h4>Variação Absoluta</h4>
-        <h2>R$ {delta_abs:,.0f}</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-    c4.markdown(f"""
-    <div class="white-card">
-        <h4>Variação Percentual</h4>
-        <h2>{delta_pct:.2f}%</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.divider()
-
-    # -------------------------
-    # POSICIONAMENTO
-    # -------------------------
-    c5, c6, c7 = st.columns(3)
-
-    c5.markdown(f"""
-    <div class="small-card">
-        <h4>Posição no Estado (2025)</h4>
-        <h2>{rank_2025}º / {total_mun}</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-    c6.markdown(f"""
-    <div class="small-card">
-        <h4>Posição no Estado (2026)</h4>
-        <h2>{rank_2026}º / {total_mun}</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-    seta = "⬆️" if delta_rank and delta_rank > 0 else "⬇️"
-    c7.markdown(f"""
-    <div class="small-card">
-        <h4>Variação no Ranking</h4>
-        <h2>{seta} {abs(delta_rank) if delta_rank else 0} posições</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.divider()
-
-    # -------------------------
-    # PARTICIPAÇÃO NO BOLO
-    # -------------------------
-    df_share = pd.DataFrame({
-        "Ano": ["2025", "2026 (est.)"],
-        "Participação (%)": [share_2025 * 100, share_2026 * 100]
-    })
-
-    fig_share = px.bar(
-        df_share,
-        x="Ano",
-        y="Participação (%)",
-        text=df_share["Participação (%)"].map(lambda x: f"{x:.2f}%"),
-        color="Ano",
-        color_discrete_sequence=["#C2A4CF", "#3A0057"]
+    fig_icms.update_layout(
+        title=f"{municipio_sel} – ICMS Educacional",
+        yaxis_title="Valor (R$)",
+        template="simple_white",
+        height=420
     )
 
-    fig_share.update_layout(
-        height=360,
-        showlegend=False,
-        yaxis_title="Participação no total estadual (%)",
-        xaxis_title=""
-    )
-
-    st.plotly_chart(fig_share, use_container_width=True)
+    st.plotly_chart(fig_icms, use_container_width=True)
 
 
     # ---------------------------------------------------------
@@ -818,6 +749,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
