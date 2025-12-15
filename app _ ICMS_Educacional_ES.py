@@ -777,6 +777,56 @@ elif menu == "📊 IQE":
                 text=[f"R$ {v:,.0f}" for v in df_rank_plot[col_icms]],
                 textposition="outside"
             ))
+            fig2 = go.Figure(go.Bar(
+    x=df_rank_plot[col_icms],
+    y=df_rank_plot["Município"],
+    orientation="h",
+    marker_color=cores,
+    text=[f"R$ {v:,.0f}" for v in df_rank_plot[col_icms]],
+    textposition="outside"
+))
+
+# --------------------------------------------------
+# ANOTAÇÕES EXPLÍCITAS – 1º e último colocado
+# --------------------------------------------------
+mun_max = top_1.iloc[0]
+mun_min = last_1.iloc[0]
+
+# 1º colocado
+fig2.add_annotation(
+    x=mun_max[col_icms],
+    y=mun_max["Município"],
+    text="🥇 1º colocado no Estado",
+    showarrow=True,
+    arrowhead=2,
+    ax=40,
+    ay=-10,
+    font=dict(color="#1B9E77", size=12),
+    bgcolor="rgba(255,255,255,0.8)"
+)
+
+# Último colocado
+fig2.add_annotation(
+    x=mun_min[col_icms],
+    y=mun_min["Município"],
+    text="⬇️ Último colocado no Estado",
+    showarrow=True,
+    arrowhead=2,
+    ax=40,
+    ay=10,
+    font=dict(color="#7E7E7E", size=12),
+    bgcolor="rgba(255,255,255,0.8)"
+)
+
+fig2.update_layout(
+    title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
+    xaxis_title="Valor recebido (R$)",
+    yaxis_title="Município",
+    template="simple_white",
+    height=560,
+    margin=dict(l=80, r=40, t=60, b=40)
+)
+
 
             fig2.update_layout(
                 title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
@@ -874,6 +924,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
