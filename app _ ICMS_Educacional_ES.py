@@ -644,10 +644,8 @@ elif menu == "📊 IQE":
                                    font=dict(family="Montserrat", size=12, color="#3A0057"))
             st.plotly_chart(fig_tend, use_container_width=True)
 
+
     # ---------------------------------------------------------
-    # 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO (VERSÃO EXECUTIVA)
-    # ---------------------------------------------------------
-        # ---------------------------------------------------------
     # 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO (VERSÃO EXECUTIVA)
     # ---------------------------------------------------------
     with tab_icms:
@@ -723,6 +721,86 @@ elif menu == "📊 IQE":
         c5.metric("Participação no ICMS Educacional (%)", f"{part_2026:.3f}%")
 
         st.divider()
+        # --------------------------------------------------
+        # GRÁFICO 1 – Evolução do ICMS Educacional
+        # --------------------------------------------------
+        fig1 = go.Figure()
+        fig1.add_trace(go.Bar(
+            x=["2025 (ref. 2023)", "2026 (ref. 2024)"],
+            y=[v_2025, v_2026],
+            marker_color=["#C2A4CF", "#3A0057"]
+        ))
+        fig1.update_layout(
+            title=f"{municipio_sel} – Evolução do ICMS Educacional",
+            yaxis_title="Valor (R$)",
+            template="simple_white",
+            height=420
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+
+        # --------------------------------------------------
+        # GRÁFICO 2 – Ranking estadual (topo, base e janela local)
+        # --------------------------------------------------
+        if np.isfinite(pos_2026):
+
+            janela = 4
+
+            top_1 = icms_2026_rank.iloc[[0]].copy()
+            last_1 = icms_2026_rank.iloc[[-1]].copy()
+
+            ini = max(pos_2026 - janela - 1, 0)
+            fim = min(pos_2026 + janela, total_mun)
+            janela_local = icms_2026_rank.iloc[ini:fim].copy()
+
+            df_rank_plot = pd.concat(
+                [top_1, janela_local, last_1]
+            ).drop_duplicates(subset=["Município"])
+
+            df_rank_plot = df_rank_plot.sort_values(col_icms, ascending=True)
+
+            cores = []
+            for m in df_rank_plot["Município"]:
+                if m == municipio_sel:
+                    cores.append("#3A0057")      # município selecionado
+                elif m == top_1.iloc[0]["Município"]:
+                    cores.append("#1B9E77")      # topo do Estado
+                elif m == last_1.iloc[0]["Município"]:
+                    cores.append("#BDBDBD")      # base do Estado
+                else:
+                    cores.append("#C2A4CF")      # demais
+
+            fig2 = go.Figure(go.Bar(
+                x=df_rank_plot[col_icms],
+                y=df_rank_plot["Município"],
+                orientation="h",
+                marker_color=cores,
+                text=[f"R$ {v:,.0f}" for v in df_rank_plot[col_icms]],
+                textposition="outside"
+            ))
+
+            fig2.update_layout(
+                title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
+                xaxis_title="Valor recebido (R$)",
+                yaxis_title="Município",
+                template="simple_white",
+                height=560,
+                margin=dict(l=80, r=40, t=60, b=40)
+            )
+
+            st.plotly_chart(fig2, use_container_width=True)
+
+            st.markdown(
+                """
+                <div style="font-size:13px; color:#5F6169; margin-top:8px;">
+                <b>Legenda:</b>
+                <span style="color:#1B9E77;">■</span> 1º colocado no Estado &nbsp;&nbsp;
+                <span style="color:#3A0057;">■</span> Município selecionado &nbsp;&nbsp;
+                <span style="color:#C2A4CF;">■</span> Demais municípios &nbsp;&nbsp;
+                <span style="color:#BDBDBD;">■</span> Último colocado no Estado
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
 
@@ -796,6 +874,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
