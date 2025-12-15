@@ -644,7 +644,7 @@ elif menu == "📊 IQE":
                                    font=dict(family="Montserrat", size=12, color="#3A0057"))
             st.plotly_chart(fig_tend, use_container_width=True)
 
-    # ---------------------------------------------------------
+        # ---------------------------------------------------------
     # 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO (VERSÃO EXECUTIVA)
     # ---------------------------------------------------------
     with tab_icms:
@@ -654,7 +654,7 @@ elif menu == "📊 IQE":
         # ============================
         # CONFIGURAÇÕES BÁSICAS
         # ============================
-        col_icms = "ICMS Educacional"  # 🔴 ajuste SOMENTE se o nome da coluna for diferente
+        col_icms = "ICMS_Educacional_Estimado"
 
         def fmt_br(valor):
             if pd.isna(valor):
@@ -667,23 +667,34 @@ elif menu == "📊 IQE":
         df_icms = base[["Município", "Ano-Referência", col_icms]].dropna().copy()
         df_icms["Ano-Referência"] = df_icms["Ano-Referência"].astype(int)
 
-        df_mun = df_icms[df_icms["Município"] == municipio_sel].sort_values("Ano-Referência")
+        df_mun = (
+            df_icms[df_icms["Município"] == municipio_sel]
+            .sort_values("Ano-Referência")
+            .reset_index(drop=True)
+        )
 
-        # Anos trabalhados
-        ano_ref_1 = df_mun["Ano-Referência"].iloc[-2]
-        ano_ref_2 = df_mun["Ano-Referência"].iloc[-1]
+        if len(df_mun) < 2:
+            st.warning("Não há dados suficientes de ICMS para comparação temporal.")
+            st.stop()
 
-        v_1 = df_mun.loc[df_mun["Ano-Referência"] == ano_ref_1, col_icms].iloc[0]
-        v_2 = df_mun.loc[df_mun["Ano-Referência"] == ano_ref_2, col_icms].iloc[0]
+        # Anos de referência
+        ano_ref_1 = int(df_mun.iloc[-2]["Ano-Referência"])
+        ano_ref_2 = int(df_mun.iloc[-1]["Ano-Referência"])
+
+        v_1 = float(df_mun.iloc[-2][col_icms])
+        v_2 = float(df_mun.iloc[-1][col_icms])
 
         delta_abs = v_2 - v_1
         delta_pct = (delta_abs / v_1 * 100) if v_1 != 0 else np.nan
 
         # ============================
-        # RANKING ESTADUAL
+        # RANKING ESTADUAL (ANO MAIS RECENTE)
         # ============================
-        rank_ano = df_icms[df_icms["Ano-Referência"] == ano_ref_2] \
-            .sort_values(col_icms, ascending=False).reset_index(drop=True)
+        rank_ano = (
+            df_icms[df_icms["Ano-Referência"] == ano_ref_2]
+            .sort_values(col_icms, ascending=False)
+            .reset_index(drop=True)
+        )
 
         total_mun = len(rank_ano)
         pos_mun = int(rank_ano.index[rank_ano["Município"] == municipio_sel][0] + 1)
@@ -692,14 +703,17 @@ elif menu == "📊 IQE":
         # CARDS
         # ============================
         c1, c2, c3 = st.columns(3)
+
         c1.metric(
             f"ICMS Educacional {ano_ref_1 + 2} (ref. {ano_ref_1})",
             f"R$ {fmt_br(v_1)}"
         )
+
         c2.metric(
             f"ICMS Educacional {ano_ref_2 + 2} (ref. {ano_ref_2})",
             f"R$ {fmt_br(v_2)}"
         )
+
         c3.metric(
             "Δ Financeiro",
             f"R$ {fmt_br(delta_abs)}",
@@ -714,7 +728,10 @@ elif menu == "📊 IQE":
         fig1 = go.Figure()
 
         fig1.add_trace(go.Bar(
-            x=[f"{ano_ref_1 + 2} (ref. {ano_ref_1})", f"{ano_ref_2 + 2} (ref. {ano_ref_2})"],
+            x=[
+                f"{ano_ref_1 + 2} (ref. {ano_ref_1})",
+                f"{ano_ref_2 + 2} (ref. {ano_ref_2})"
+            ],
             y=[v_1, v_2],
             marker_color=["#C2A4CF", "#3A0057"],
             name="Valor recebido"
@@ -725,7 +742,10 @@ elif menu == "📊 IQE":
         p = np.poly1d(z)
 
         fig1.add_trace(go.Scatter(
-            x=[f"{ano_ref_1 + 2} (ref. {ano_ref_1})", f"{ano_ref_2 + 2} (ref. {ano_ref_2})"],
+            x=[
+                f"{ano_ref_1 + 2} (ref. {ano_ref_1})",
+                f"{ano_ref_2 + 2} (ref. {ano_ref_2})"
+            ],
             y=p([1, 2]),
             mode="lines+markers",
             line=dict(color="#1B9E77", dash="dash"),
@@ -742,7 +762,7 @@ elif menu == "📊 IQE":
         st.plotly_chart(fig1, use_container_width=True)
 
         # ============================
-        # GRÁFICO 2 – RANKING ESTADUAL
+        # GRÁFICO 2 – RANKING ESTADUAL (COM TOPO, BASE E JANELA LOCAL)
         # ============================
         janela = 4
 
@@ -754,37 +774,38 @@ elif menu == "📊 IQE":
 
         janela_local = rank_ano.iloc[ini:fim]
 
-        df_rank_plot = pd.concat([top_1, janela_local, last_1]) \
-            .drop_duplicates(subset=["Município"]) \
+        df_rank_plot = (
+            pd.concat([top_1, janela_local, last_1])
+            .drop_duplicates(subset=["Município"])
             .sort_values(col_icms, ascending=True)
+        )
 
         cores = []
-        textos_internos = []
+        textos = []
 
         for _, r in df_rank_plot.iterrows():
             if r["Município"] == municipio_sel:
                 cores.append("#3A0057")
-                textos_internos.append("Município selecionado")
+                textos.append("Município selecionado")
             elif r["Município"] == top_1.iloc[0]["Município"]:
                 cores.append("#1B9E77")
-                textos_internos.append("🥇 1º no Estado")
+                textos.append("🥇 1º no Estado")
             elif r["Município"] == last_1.iloc[0]["Município"]:
                 cores.append("#BDBDBD")
-                textos_internos.append("⬇ Último no Estado")
+                textos.append("⬇ Último no Estado")
             else:
                 cores.append("#C2A4CF")
-                textos_internos.append("")
+                textos.append("")
 
-        fig2 = go.Figure(go.Bar(
+        fig2 = go.Figure()
+
+        fig2.add_trace(go.Bar(
             x=df_rank_plot[col_icms],
             y=df_rank_plot["Município"],
             orientation="h",
             marker_color=cores,
             text=[fmt_br(v) for v in df_rank_plot[col_icms]],
-            textposition="outside",
-            insidetextanchor="start",
-            customdata=textos_internos,
-            hovertemplate="<b>%{y}</b><br>R$ %{x:,.2f}<extra></extra>"
+            textposition="outside"
         ))
 
         fig2.add_trace(go.Bar(
@@ -792,18 +813,18 @@ elif menu == "📊 IQE":
             y=df_rank_plot["Município"],
             orientation="h",
             marker_color="rgba(0,0,0,0)",
-            text=textos_internos,
+            text=textos,
             textposition="inside",
             showlegend=False
         ))
 
         fig2.update_layout(
-            title=f"Posicionamento do município no ranking estadual de ICMS Educacional ({ano_ref_2 + 2})",
+            title=f"Posicionamento no ranking estadual de ICMS Educacional ({ano_ref_2 + 2})",
             xaxis_title="Valor recebido (R$)",
             yaxis_title="Município",
             template="simple_white",
             height=560,
-            margin=dict(l=90, r=40, t=60, b=40)
+            margin=dict(l=100, r=40, t=60, b=40)
         )
 
         st.plotly_chart(fig2, use_container_width=True)
@@ -812,7 +833,6 @@ elif menu == "📊 IQE":
             f"Análise baseada em dados observados no ano de referência {ano_ref_2}. "
             "Não representa regra oficial de cálculo."
         )
-
 
 
 
@@ -885,6 +905,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
