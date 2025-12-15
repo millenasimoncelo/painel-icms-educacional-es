@@ -712,7 +712,7 @@ elif menu == "📊 IQE":
             acima = icms_2026_rank.iloc[pos_2026 - 2]
             dist_val = acima[col_icms] - v_2026
 
-                # --------------------------------------------------
+        # --------------------------------------------------
         # CARDS – VISÃO EXECUTIVA (ORGANIZADA)
         # --------------------------------------------------
 
@@ -771,38 +771,66 @@ elif menu == "📊 IQE":
         )
         st.plotly_chart(fig1, use_container_width=True)
 
+                # --------------------------------------------------
+        # GRÁFICO 2 – Ranking estadual com topo, base e janela local
         # --------------------------------------------------
-        # GRÁFICO 2 – Ranking estadual (janela)
-        # --------------------------------------------------
-        janela = 5
+
         if np.isfinite(pos_2026):
+
+            # --- parâmetros
+            janela = 4
+
+            # --- Topo e base
+            top_1 = icms_2026_rank.iloc[[0]].copy()
+            last_1 = icms_2026_rank.iloc[[-1]].copy()
+
+            # --- Janela local
             ini = max(pos_2026 - janela - 1, 0)
             fim = min(pos_2026 + janela, total_mun)
-            rank_plot = icms_2026_rank.iloc[ini:fim].copy()
+            janela_local = icms_2026_rank.iloc[ini:fim].copy()
 
-            cores = ["#3A0057" if m == municipio_sel else "#C2A4CF" for m in rank_plot["Município"]]
+            # --- Combina (evita duplicação)
+            df_rank_plot = pd.concat(
+                [top_1, janela_local, last_1]
+            ).drop_duplicates(subset=["Município"])
 
+            # --- Ordena para visualização
+            df_rank_plot = df_rank_plot.sort_values(
+                col_icms, ascending=True
+            )
+
+            # --- Definição de cores
+            cores = []
+            for m in df_rank_plot["Município"]:
+                if m == municipio_sel:
+                    cores.append("#3A0057")      # município selecionado
+                elif m == top_1.iloc[0]["Município"]:
+                    cores.append("#1B9E77")      # topo do Estado
+                elif m == last_1.iloc[0]["Município"]:
+                    cores.append("#BDBDBD")      # base do Estado
+                else:
+                    cores.append("#C2A4CF")      # demais
+
+            # --- Gráfico
             fig2 = go.Figure(go.Bar(
-                x=rank_plot[col_icms],
-                y=rank_plot["Município"],
+                x=df_rank_plot[col_icms],
+                y=df_rank_plot["Município"],
                 orientation="h",
-                marker_color=cores
+                marker_color=cores,
+                text=[f"R$ {v:,.0f}" for v in df_rank_plot[col_icms]],
+                textposition="outside"
             ))
 
             fig2.update_layout(
                 title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
-                xaxis_title="Valor (R$)",
+                xaxis_title="Valor recebido (R$)",
                 yaxis_title="Município",
                 template="simple_white",
-                height=520
+                height=560,
+                margin=dict(l=80, r=40, t=60, b=40)
             )
-            st.plotly_chart(fig2, use_container_width=True)
 
-        st.caption(
-            "Leitura-chave: o valor do ICMS Educacional é diretamente proporcional ao desempenho medido pelo IQE. "
-            "Avanços no IQE resultam, necessariamente, em maior participação "
-            "no ICMS Educacional."
-        )
+            st.plotly_chart(fig2, use_container_width=True)
 
 
     # ---------------------------------------------------------
@@ -874,6 +902,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
