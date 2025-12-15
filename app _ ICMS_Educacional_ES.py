@@ -820,6 +820,30 @@ elif menu == "📊 IQE":
                 text=[f"R$ {v:,.0f}" for v in df_rank_plot[col_icms]],
                 textposition="outside"
             ))
+        # --------------------------------------------------
+        # ANOTAÇÕES EXPLÍCITAS: 1º E ÚLTIMO COLOCADO
+        # --------------------------------------------------
+        mun_max = df_rank.iloc[0]
+        mun_min = df_rank.iloc[-1]
+
+        fig2.add_annotation(
+            x=mun_max[col_icms],
+            y=mun_max["Município"],
+            text="🏆 1º colocado",
+            showarrow=False,
+            xanchor="left",
+            font=dict(color="#1B9E77", size=13, family="Montserrat")
+        )
+
+        fig2.add_annotation(
+            x=mun_min[col_icms],
+            y=mun_min["Município"],
+            text="⬇️ Último colocado",
+            showarrow=False,
+            xanchor="left",
+            font=dict(color="#6E6E6E", size=13, family="Montserrat")
+        )
+
 
             fig2.update_layout(
                 title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
@@ -831,7 +855,7 @@ elif menu == "📊 IQE":
             )
 
             st.plotly_chart(fig2, use_container_width=True)
-                        st.markdown(
+            st.markdown(
                 """
                 <div style="font-size:13px; color:#5F6169; margin-top:8px;">
                 <b>Legenda:</b>
@@ -915,6 +939,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
