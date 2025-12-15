@@ -791,9 +791,87 @@ if np.isfinite(pos_2026):
 
     # --- Combina (evita duplicação)
     df_rank_plot = pd.concat(
-        [top_1,_]()
+        [top_1, janela_local, last_1]
+    ).drop_duplicates(subset=["Município"])
 
+    # --- Ordena para visualização
+    df_rank_plot = df_rank_plot.sort_values(
+        col_icms, ascending=True
+    )
 
+    # --- Definição de cores
+    cores = []
+    for m in df_rank_plot["Município"]:
+        if m == municipio_sel:
+            cores.append("#3A0057")      # município selecionado
+        elif m == top_1.iloc[0]["Município"]:
+            cores.append("#1B9E77")      # topo do Estado
+        elif m == last_1.iloc[0]["Município"]:
+            cores.append("#BDBDBD")      # base do Estado
+        else:
+            cores.append("#C2A4CF")      # demais
+
+    # --- Gráfico
+    fig2 = go.Figure(
+        go.Bar(
+            x=df_rank_plot[col_icms],
+            y=df_rank_plot["Município"],
+            orientation="h",
+            marker_color=cores,
+            text=[f"R$ {v:,.0f}" for v in df_rank_plot[col_icms]],
+            textposition="outside"
+        )
+    )
+
+    # --- Anotações explícitas
+    mun_max = icms_2026_rank.iloc[0]
+    mun_min = icms_2026_rank.iloc[-1]
+
+    fig2.add_annotation(
+        x=mun_max[col_icms],
+        y=mun_max["Município"],
+        text="🥇 1º colocado no Estado",
+        showarrow=True,
+        arrowhead=2,
+        ax=40,
+        ay=-10,
+        font=dict(color="#1B9E77", size=12)
+    )
+
+    fig2.add_annotation(
+        x=mun_min[col_icms],
+        y=mun_min["Município"],
+        text="⬇️ Último colocado no Estado",
+        showarrow=True,
+        arrowhead=2,
+        ax=40,
+        ay=10,
+        font=dict(color="#7E7E7E", size=12)
+    )
+
+    fig2.update_layout(
+        title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
+        xaxis_title="Valor recebido (R$)",
+        yaxis_title="Município",
+        template="simple_white",
+        height=560,
+        margin=dict(l=80, r=40, t=60, b=40)
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+    st.markdown(
+        """
+        <div style="font-size:13px; color:#5F6169; margin-top:8px;">
+        <b>Legenda:</b>
+        <span style="color:#1B9E77;">■</span> Maior valor estadual &nbsp;&nbsp;
+        <span style="color:#3A0057;">■</span> Município selecionado &nbsp;&nbsp;
+        <span style="color:#C2A4CF;">■</span> Demais municípios &nbsp;&nbsp;
+        <span style="color:#BDBDBD;">■</span> Menor valor estadual
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
     # ---------------------------------------------------------
@@ -865,6 +943,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
