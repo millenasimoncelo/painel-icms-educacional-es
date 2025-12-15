@@ -905,6 +905,7 @@ with tab_icms:
         yaxis_title="Valor (R$)",
         template="simple_white",
         height=380
+        yaxis=dict(range=[0, 20_000_000])
     )
     st.plotly_chart(fig_med, use_container_width=True)
 
@@ -1070,6 +1071,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
