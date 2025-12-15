@@ -867,7 +867,7 @@ elif menu == "📊 IQE":
                 unsafe_allow_html=True
             )
         else:
-            st.info("Não foi possível calcular a posição do município no ranking (2026)."
+            st.info("Não foi possível calcular a posição do município no ranking (2026).")
 
 
 
@@ -941,6 +941,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
