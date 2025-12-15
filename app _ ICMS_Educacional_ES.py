@@ -644,179 +644,174 @@ elif menu == "📊 IQE":
                                    font=dict(family="Montserrat", size=12, color="#3A0057"))
             st.plotly_chart(fig_tend, use_container_width=True)
 
-# ---------------------------------------------------------
-# 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO (VERSÃO EXECUTIVA)
-# ---------------------------------------------------------
-with tab_icms:
+    # ---------------------------------------------------------
+    # 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO (VERSÃO EXECUTIVA)
+    # ---------------------------------------------------------
+    with tab_icms:
 
-    st.subheader("💰 ICMS Educacional – Impacto Financeiro e Posicionamento Estadual")
+        st.subheader("💰 ICMS Educacional – Impacto Financeiro e Posicionamento Estadual")
 
-    # -----------------------------
-    # Dados base do município
-    # -----------------------------
-    df_mun = base[base["Município"] == municipio_sel].sort_values("Ano-Referência")
+        # ============================
+        # CONFIGURAÇÕES BÁSICAS
+        # ============================
+        col_icms = "ICMS Educacional"  # 🔴 ajuste SOMENTE se o nome da coluna for diferente
 
-    v_2025 = df_mun.loc[df_mun["Ano-Referência"] == 2023, col_icms].iloc[0]
-    v_2026 = df_mun.loc[df_mun["Ano-Referência"] == 2024, col_icms].iloc[0]
+        def fmt_br(valor):
+            if pd.isna(valor):
+                return "-"
+            return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-    delta_abs = v_2026 - v_2025
-    delta_pct = (delta_abs / v_2025) * 100 if v_2025 > 0 else np.nan
+        # ============================
+        # BASE DE DADOS
+        # ============================
+        df_icms = base[["Município", "Ano-Referência", col_icms]].dropna().copy()
+        df_icms["Ano-Referência"] = df_icms["Ano-Referência"].astype(int)
 
-    # -----------------------------
-    # Ranking estadual (2026)
-    # -----------------------------
-    df_rank = (
-        base[base["Ano-Referência"] == 2024]
-        [["Município", col_icms]]
-        .dropna()
-        .sort_values(col_icms, ascending=False)
-        .reset_index(drop=True)
-    )
+        df_mun = df_icms[df_icms["Município"] == municipio_sel].sort_values("Ano-Referência")
 
-    total_mun = len(df_rank)
-    pos_2026 = df_rank.index[df_rank["Município"] == municipio_sel][0] + 1
+        # Anos trabalhados
+        ano_ref_1 = df_mun["Ano-Referência"].iloc[-2]
+        ano_ref_2 = df_mun["Ano-Referência"].iloc[-1]
 
-    part_2026 = v_2026 / df_rank[col_icms].sum() * 100
+        v_1 = df_mun.loc[df_mun["Ano-Referência"] == ano_ref_1, col_icms].iloc[0]
+        v_2 = df_mun.loc[df_mun["Ano-Referência"] == ano_ref_2, col_icms].iloc[0]
 
-    # -----------------------------
-    # Cards principais
-    # -----------------------------
-    c1, c2, c3, c4 = st.columns(4)
+        delta_abs = v_2 - v_1
+        delta_pct = (delta_abs / v_1 * 100) if v_1 != 0 else np.nan
 
-    c1.metric(
-        "ICMS Educacional 2025 (ref. 2023)",
-        fmt_moeda_br(v_2025)
-    )
+        # ============================
+        # RANKING ESTADUAL
+        # ============================
+        rank_ano = df_icms[df_icms["Ano-Referência"] == ano_ref_2] \
+            .sort_values(col_icms, ascending=False).reset_index(drop=True)
 
-    c2.metric(
-        "ICMS Educacional 2026 (ref. 2024)",
-        fmt_moeda_br(v_2026)
-    )
+        total_mun = len(rank_ano)
+        pos_mun = int(rank_ano.index[rank_ano["Município"] == municipio_sel][0] + 1)
 
-    c3.metric(
-        "Δ Financeiro",
-        fmt_moeda_br(delta_abs),
-        fmt_pct_br(delta_pct)
-    )
+        # ============================
+        # CARDS
+        # ============================
+        c1, c2, c3 = st.columns(3)
+        c1.metric(
+            f"ICMS Educacional {ano_ref_1 + 2} (ref. {ano_ref_1})",
+            f"R$ {fmt_br(v_1)}"
+        )
+        c2.metric(
+            f"ICMS Educacional {ano_ref_2 + 2} (ref. {ano_ref_2})",
+            f"R$ {fmt_br(v_2)}"
+        )
+        c3.metric(
+            "Δ Financeiro",
+            f"R$ {fmt_br(delta_abs)}",
+            f"{delta_pct:.2f}%".replace(".", ",")
+        )
 
-    c4.metric(
-        "Posição no Estado (2026)",
-        f"{pos_2026}º / {total_mun}"
-    )
+        st.divider()
 
-    st.metric(
-        "Participação no ICMS Educacional (%)",
-        fmt_pct_br(part_2026, 3)
-    )
+        # ============================
+        # GRÁFICO 1 – EVOLUÇÃO + TENDÊNCIA
+        # ============================
+        fig1 = go.Figure()
 
-    st.divider()
+        fig1.add_trace(go.Bar(
+            x=[f"{ano_ref_1 + 2} (ref. {ano_ref_1})", f"{ano_ref_2 + 2} (ref. {ano_ref_2})"],
+            y=[v_1, v_2],
+            marker_color=["#C2A4CF", "#3A0057"],
+            name="Valor recebido"
+        ))
 
-    # --------------------------------------------------
-    # GRÁFICO 1 – EVOLUÇÃO DO ICMS (BARRAS + LINHA)
-    # --------------------------------------------------
-    fig1 = go.Figure()
+        # Linha de tendência
+        z = np.polyfit([1, 2], [v_1, v_2], 1)
+        p = np.poly1d(z)
 
-    fig1.add_bar(
-        x=["2025 (ref. 2023)", "2026 (ref. 2024)"],
-        y=[v_2025, v_2026],
-        marker_color=["#C2A4CF", "#3A0057"],
-        name="Valor recebido"
-    )
+        fig1.add_trace(go.Scatter(
+            x=[f"{ano_ref_1 + 2} (ref. {ano_ref_1})", f"{ano_ref_2 + 2} (ref. {ano_ref_2})"],
+            y=p([1, 2]),
+            mode="lines+markers",
+            line=dict(color="#1B9E77", dash="dash"),
+            name="Tendência"
+        ))
 
-    fig1.add_trace(go.Scatter(
-        x=["2025 (ref. 2023)", "2026 (ref. 2024)"],
-        y=[v_2025, v_2026],
-        mode="lines+markers",
-        line=dict(color="#1B9E77", width=3),
-        marker=dict(size=8),
-        name="Tendência observada"
-    ))
+        fig1.update_layout(
+            title=f"{municipio_sel} – Evolução do ICMS Educacional",
+            yaxis_title="Valor recebido (R$)",
+            template="simple_white",
+            height=420
+        )
 
-    fig1.update_layout(
-        title=f"{municipio_sel} – Evolução do ICMS Educacional",
-        yaxis_title="Valor (R$)",
-        template="simple_white",
-        height=420,
-        legend=dict(orientation="h", y=1.05, x=0)
-    )
+        st.plotly_chart(fig1, use_container_width=True)
 
-    st.plotly_chart(fig1, use_container_width=True)
+        # ============================
+        # GRÁFICO 2 – RANKING ESTADUAL
+        # ============================
+        janela = 4
 
-    st.caption(
-        "Análise baseada em dados observados nos anos de referência 2023 e 2024. "
-        "Não representa regra oficial de cálculo."
-    )
+        top_1 = rank_ano.iloc[[0]]
+        last_1 = rank_ano.iloc[[-1]]
 
-    st.divider()
+        ini = max(pos_mun - janela - 1, 0)
+        fim = min(pos_mun + janela, total_mun)
 
-    # --------------------------------------------------
-    # GRÁFICO 2 – POSICIONAMENTO NO RANKING (JANELA LOCAL)
-    # --------------------------------------------------
-    janela = 5
-    idx = pos_2026 - 1
+        janela_local = rank_ano.iloc[ini:fim]
 
-    ini = max(idx - janela, 0)
-    fim = min(idx + janela + 1, total_mun)
+        df_rank_plot = pd.concat([top_1, janela_local, last_1]) \
+            .drop_duplicates(subset=["Município"]) \
+            .sort_values(col_icms, ascending=True)
 
-    df_rank_plot = df_rank.iloc[ini:fim].copy()
-    df_rank_plot = df_rank_plot.sort_values(col_icms, ascending=True)
+        cores = []
+        textos_internos = []
 
-    top_1 = df_rank.iloc[0]
-    last_1 = df_rank.iloc[-1]
+        for _, r in df_rank_plot.iterrows():
+            if r["Município"] == municipio_sel:
+                cores.append("#3A0057")
+                textos_internos.append("Município selecionado")
+            elif r["Município"] == top_1.iloc[0]["Município"]:
+                cores.append("#1B9E77")
+                textos_internos.append("🥇 1º no Estado")
+            elif r["Município"] == last_1.iloc[0]["Município"]:
+                cores.append("#BDBDBD")
+                textos_internos.append("⬇ Último no Estado")
+            else:
+                cores.append("#C2A4CF")
+                textos_internos.append("")
 
-    cores = []
-    textos_internos = []
+        fig2 = go.Figure(go.Bar(
+            x=df_rank_plot[col_icms],
+            y=df_rank_plot["Município"],
+            orientation="h",
+            marker_color=cores,
+            text=[fmt_br(v) for v in df_rank_plot[col_icms]],
+            textposition="outside",
+            insidetextanchor="start",
+            customdata=textos_internos,
+            hovertemplate="<b>%{y}</b><br>R$ %{x:,.2f}<extra></extra>"
+        ))
 
-    for m in df_rank_plot["Município"]:
-        if m == municipio_sel:
-            cores.append("#3A0057")
-            textos_internos.append("Município selecionado")
-        elif m == top_1["Município"]:
-            cores.append("#1B9E77")
-            textos_internos.append("🥇 1º no Estado")
-        elif m == last_1["Município"]:
-            cores.append("#BDBDBD")
-            textos_internos.append("⬇ Último no Estado")
-        else:
-            cores.append("#C2A4CF")
-            textos_internos.append("")
+        fig2.add_trace(go.Bar(
+            x=df_rank_plot[col_icms],
+            y=df_rank_plot["Município"],
+            orientation="h",
+            marker_color="rgba(0,0,0,0)",
+            text=textos_internos,
+            textposition="inside",
+            showlegend=False
+        ))
 
-    fig2 = go.Figure(go.Bar(
-        x=df_rank_plot[col_icms],
-        y=df_rank_plot["Município"],
-        orientation="h",
-        marker_color=cores,
-        text=[
-            f"{txt}" if txt != "" else ""
-            for txt in textos_internos
-        ],
-        textposition="inside",
-        insidetextanchor="start"
-    ))
+        fig2.update_layout(
+            title=f"Posicionamento do município no ranking estadual de ICMS Educacional ({ano_ref_2 + 2})",
+            xaxis_title="Valor recebido (R$)",
+            yaxis_title="Município",
+            template="simple_white",
+            height=560,
+            margin=dict(l=90, r=40, t=60, b=40)
+        )
 
-    fig2.update_layout(
-        title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
-        xaxis_title="Valor recebido (R$)",
-        yaxis_title="Município",
-        template="simple_white",
-        height=560,
-        margin=dict(l=80, r=40, t=60, b=40)
-    )
+        st.plotly_chart(fig2, use_container_width=True)
 
-    st.plotly_chart(fig2, use_container_width=True)
-
-    st.markdown(
-        """
-        <div style="font-size:13px; color:#5F6169; margin-top:8px;">
-        <b>Legenda:</b>
-        <span style="color:#1B9E77;">■</span> 1º colocado no Estado &nbsp;&nbsp;
-        <span style="color:#3A0057;">■</span> Município selecionado &nbsp;&nbsp;
-        <span style="color:#C2A4CF;">■</span> Demais municípios &nbsp;&nbsp;
-        <span style="color:#BDBDBD;">■</span> Último colocado no Estado
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.caption(
+            f"Análise baseada em dados observados no ano de referência {ano_ref_2}. "
+            "Não representa regra oficial de cálculo."
+        )
 
 
 
@@ -890,6 +885,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
