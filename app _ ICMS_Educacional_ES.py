@@ -831,6 +831,19 @@ elif menu == "📊 IQE":
             )
 
             st.plotly_chart(fig2, use_container_width=True)
+                        st.markdown(
+                """
+                <div style="font-size:13px; color:#5F6169; margin-top:8px;">
+                <b>Legenda:</b>
+                <span style="color:#1B9E77;">■</span> Maior valor estadual &nbsp;&nbsp;
+                <span style="color:#3A0057;">■</span> Município selecionado &nbsp;&nbsp;
+                <span style="color:#C2A4CF;">■</span> Demais municípios &nbsp;&nbsp;
+                <span style="color:#BDBDBD;">■</span> Menor valor estadual
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
 
 
     # ---------------------------------------------------------
@@ -902,6 +915,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
