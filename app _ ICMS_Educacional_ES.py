@@ -1,5 +1,5 @@
 # =====================================
-# app.py – Painel IQE Completo (Parte 1/3)
+# app.py – Painel IQE Completo (Parte 1/3)fig2 = go.Figure()
 # =====================================
 import streamlit as st
 import pandas as pd
@@ -820,29 +820,33 @@ elif menu == "📊 IQE":
                 text=[f"R$ {v:,.0f}" for v in df_rank_plot[col_icms]],
                 textposition="outside"
             ))
-        # --------------------------------------------------
-        # ANOTAÇÕES EXPLÍCITAS: 1º E ÚLTIMO COLOCADO
-        # --------------------------------------------------
-        mun_max = df_rank.iloc[0]
-        mun_min = df_rank.iloc[-1]
+        # ---------------------------------------------------------
+# Anotações explícitas: 1º e último colocado
+# ---------------------------------------------------------
+mun_max = df_rank.iloc[0]
+mun_min = df_rank.iloc[-1]
 
-        fig2.add_annotation(
-            x=mun_max[col_icms],
-            y=mun_max["Município"],
-            text="🏆 1º colocado",
-            showarrow=False,
-            xanchor="left",
-            font=dict(color="#1B9E77", size=13, family="Montserrat")
-        )
+fig2.add_annotation(
+    x=mun_max[col_icms],
+    y=mun_max["Município"],
+    text="🥇 1º colocado no Estado",
+    showarrow=True,
+    arrowhead=2,
+    ax=40,
+    ay=-10,
+    font=dict(color="#1B9E77", size=12)
+)
 
-        fig2.add_annotation(
-            x=mun_min[col_icms],
-            y=mun_min["Município"],
-            text="⬇️ Último colocado",
-            showarrow=False,
-            xanchor="left",
-            font=dict(color="#6E6E6E", size=13, family="Montserrat")
-        )
+fig2.add_annotation(
+    x=mun_min[col_icms],
+    y=mun_min["Município"],
+    text="⬇️ Último colocado no Estado",
+    showarrow=True,
+    arrowhead=2,
+    ax=40,
+    ay=10,
+    font=dict(color="#7E7E7E", size=12)
+)
 
 
             fig2.update_layout(
@@ -939,6 +943,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
