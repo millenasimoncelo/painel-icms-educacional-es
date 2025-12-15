@@ -712,32 +712,47 @@ elif menu == "📊 IQE":
             acima = icms_2026_rank.iloc[pos_2026 - 2]
             dist_val = acima[col_icms] - v_2026
 
+                # --------------------------------------------------
+        # CARDS – VISÃO EXECUTIVA (ORGANIZADA)
         # --------------------------------------------------
-        # CARDS – VISÃO EXECUTIVA
-        # --------------------------------------------------
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("ICMS Educacional 2025 (ref. 2023)", f"R$ {v_2025:,.2f}")
-        c2.metric("ICMS Educacional 2026 (ref. 2024)", f"R$ {v_2026:,.2f}")
-        c3.metric("Δ Absoluto", f"R$ {delta_abs:,.2f}", f"{delta_pct:.2f}%")
+
+        # ===== LINHA 1 — RESULTADO FINANCEIRO =====
+        c1, c2, c3 = st.columns(3)
+
+        c1.metric(
+            "ICMS Educacional 2025 (ref. 2023)",
+            f"R$ {v_2025:,.2f}"
+        )
+
+        c2.metric(
+            "ICMS Educacional 2026 (ref. 2024)",
+            f"R$ {v_2026:,.2f}"
+        )
+
+        c3.metric(
+            "Δ Financeiro",
+            f"R$ {delta_abs:,.2f}",
+            f"{delta_pct:.2f}%"
+        )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ===== LINHA 2 — POSICIONAMENTO NO ESTADO =====
+        c4, c5 = st.columns(2)
+
         c4.metric(
             "Posição no Estado (2026)",
             f"{int(pos_2026)}º / {total_mun}",
-            f"{int(delta_pos)} posições" if np.isfinite(delta_pos) else None
+            f"+{int(delta_pos)} posições" if np.isfinite(delta_pos) else None
         )
 
-        c5, c6, c7 = st.columns(3)
         c5.metric(
             "Participação no ICMS Educacional (%)",
             f"{part_2026:.3f}%",
             f"{delta_part:+.3f} p.p." if np.isfinite(delta_part) else None
         )
-        c6.metric(
-            "Distância para o município acima",
-            f"R$ {dist_val:,.2f}" if np.isfinite(dist_val) else "—"
-        )
-        c7.metric("Regra do jogo", "ICMS ∝ IQE")
 
-        st.markdown("---")
+        st.divider()
 
         # --------------------------------------------------
         # GRÁFICO 1 – Evolução temporal
@@ -859,6 +874,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
