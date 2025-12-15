@@ -785,7 +785,9 @@ elif menu == "📊 IQE":
 
         st.caption(
             "Leitura-chave: o valor do ICMS Educacional é diretamente proporcional ao desempenho medido pelo IQE. "
-            "Avanços no IQE resultam, necessa
+            "Avanços no IQE resultam, necessariamente, em maior participação "
+            "no ICMS Educacional."
+        )
 
 
     # ---------------------------------------------------------
@@ -857,6 +859,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
