@@ -645,10 +645,10 @@ elif menu == "📊 IQE":
             st.plotly_chart(fig_tend, use_container_width=True)
 
 # ---------------------------------------------------------
-# 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO
+# 6️⃣ ICMS EDUCACIONAL – IMPACTO FINANCEIRO (VERSÃO EXECUTIVA)
 # ---------------------------------------------------------
 with tab_icms:
-    st.subheader("💰 ICMS Educacional – Impacto Financeiro")
+    st.subheader("💰 ICMS Educacional – Impacto Financeiro e Posicionamento Estadual")
 
     col_icms = "ICMS_Educacional_Estimado"
 
@@ -656,45 +656,128 @@ with tab_icms:
         st.error(f"Coluna '{col_icms}' não encontrada na base de dados.")
         st.stop()
 
+    # --------------------------------------------------
+    # Base ICMS
+    # --------------------------------------------------
     dados_icms = base[
         ["Município", "Ano-Referência", "IQE", col_icms]
     ].dropna(subset=[col_icms]).copy()
 
     dados_icms["Ano-Referência"] = dados_icms["Ano-Referência"].astype(int)
 
-    icms_2025 = dados_icms[dados_icms["Ano-Referência"] == 2023]
-    icms_2026 = dados_icms[dados_icms["Ano-Referência"] == 2024]
+    icms_2025 = dados_icms[dados_icms["Ano-Referência"] == 2023].copy()
+    icms_2026 = dados_icms[dados_icms["Ano-Referência"] == 2024].copy()
 
+    # --------------------------------------------------
+    # Valores do município
+    # --------------------------------------------------
     v_2025 = valor_municipio(icms_2025, col_icms)
     v_2026 = valor_municipio(icms_2026, col_icms)
 
     delta_abs = v_2026 - v_2025 if np.isfinite(v_2025) and np.isfinite(v_2026) else np.nan
     delta_pct = (delta_abs / v_2025 * 100) if v_2025 and np.isfinite(delta_abs) else np.nan
 
-    c1, c2, c3, c4 = st.columns(4)
+    # --------------------------------------------------
+    # Rankings financeiros
+    # --------------------------------------------------
+    icms_2025_rank = icms_2025.sort_values(col_icms, ascending=False).reset_index(drop=True)
+    icms_2026_rank = icms_2026.sort_values(col_icms, ascending=False).reset_index(drop=True)
 
+    def posicao(df):
+        if municipio_sel in df["Município"].values:
+            return int(df.index[df["Município"] == municipio_sel][0] + 1)
+        return np.nan
+
+    pos_2025 = posicao(icms_2025_rank)
+    pos_2026 = posicao(icms_2026_rank)
+    delta_pos = pos_2025 - pos_2026 if np.isfinite(pos_2025) and np.isfinite(pos_2026) else np.nan
+
+    total_mun = len(icms_2026_rank)
+
+    # --------------------------------------------------
+    # Participação no bolo estadual
+    # --------------------------------------------------
+    total_2025 = icms_2025[col_icms].sum()
+    total_2026 = icms_2026[col_icms].sum()
+
+    part_2025 = v_2025 / total_2025 * 100 if total_2025 else np.nan
+    part_2026 = v_2026 / total_2026 * 100 if total_2026 else np.nan
+    delta_part = part_2026 - part_2025 if np.isfinite(part_2025) and np.isfinite(part_2026) else np.nan
+
+    # --------------------------------------------------
+    # Distância para o município acima (2026)
+    # --------------------------------------------------
+    dist_val = np.nan
+    if np.isfinite(pos_2026) and pos_2026 > 1:
+        acima = icms_2026_rank.iloc[pos_2026 - 2]
+        dist_val = acima[col_icms] - v_2026
+
+    # --------------------------------------------------
+    # CARDS – VISÃO EXECUTIVA
+    # --------------------------------------------------
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("ICMS Educacional 2025 (ref. 2023)", f"R$ {v_2025:,.2f}")
     c2.metric("ICMS Educacional 2026 (ref. 2024)", f"R$ {v_2026:,.2f}")
-    c3.metric("Δ Absoluto", f"R$ {delta_abs:,.2f}")
-    c4.metric("Δ Percentual", f"{delta_pct:.2f}%")
+    c3.metric("Δ Absoluto", f"R$ {delta_abs:,.2f}", f"{delta_pct:.2f}%")
+    c4.metric("Posição no Estado (2026)", f"{int(pos_2026)}º / {total_mun}",
+              f"{int(delta_pos)} posições" if np.isfinite(delta_pos) else None)
+
+    c5, c6, c7 = st.columns(3)
+    c5.metric("Participação no ICMS Educacional (%)", f"{part_2026:.3f}%",
+              f"{delta_part:+.3f} p.p." if np.isfinite(delta_part) else None)
+    c6.metric("Distância para o município acima", f"R$ {dist_val:,.2f}" if np.isfinite(dist_val) else "—")
+    c7.metric("Regra do jogo", "ICMS ∝ IQE")
 
     st.markdown("---")
 
-    fig_icms = go.Figure()
-    fig_icms.add_trace(go.Bar(
+    # --------------------------------------------------
+    # GRÁFICO 1 – Comparativo temporal
+    # --------------------------------------------------
+    fig1 = go.Figure()
+    fig1.add_trace(go.Bar(
         x=["2025 (ref. 2023)", "2026 (ref. 2024)"],
         y=[v_2025, v_2026],
         marker_color=["#C2A4CF", "#3A0057"]
     ))
-
-    fig_icms.update_layout(
-        title=f"{municipio_sel} – ICMS Educacional",
+    fig1.update_layout(
+        title=f"{municipio_sel} – Evolução do ICMS Educacional",
         yaxis_title="Valor (R$)",
         template="simple_white",
         height=420
     )
+    st.plotly_chart(fig1, use_container_width=True)
 
-    st.plotly_chart(fig_icms, use_container_width=True)
+    # --------------------------------------------------
+    # GRÁFICO 2 – Ranking estadual (janela)
+    # --------------------------------------------------
+    janela = 5
+    if np.isfinite(pos_2026):
+        ini = max(pos_2026 - janela - 1, 0)
+        fim = min(pos_2026 + janela, total_mun)
+        rank_plot = icms_2026_rank.iloc[ini:fim].copy()
+
+        cores = ["#3A0057" if m == municipio_sel else "#C2A4CF" for m in rank_plot["Município"]]
+
+        fig2 = go.Figure(go.Bar(
+            x=rank_plot[col_icms],
+            y=rank_plot["Município"],
+            orientation="h",
+            marker_color=cores
+        ))
+
+        fig2.update_layout(
+            title="Posicionamento do município no ranking estadual de ICMS Educacional (2026)",
+            xaxis_title="Valor (R$)",
+            yaxis_title="Município",
+            template="simple_white",
+            height=520
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+
+    st.caption(
+        "Leitura-chave: o valor do ICMS Educacional é diretamente proporcional ao desempenho medido pelo IQE. "
+        "Avanços no IQE resultam, necessariamente, em maior participação no ICMS."
+    )
 
 
     # ---------------------------------------------------------
@@ -766,6 +849,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
 
