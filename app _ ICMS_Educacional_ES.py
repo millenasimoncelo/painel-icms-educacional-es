@@ -751,28 +751,34 @@ with tab_icms:
     st.divider()
 
     # --------------------------------------------------
-# MINI-DIAGNÓSTICO (VERSÃO MAIOR – ACORDADA)
+# MINI-DIAGNÓSTICO AUTOMÁTICO
 # --------------------------------------------------
 st.markdown(
     f"""
     <div style="background-color:#fafafa; padding:16px; border-radius:8px; border:1px solid #eee;">
-        <b>Mini-diagnóstico:</b><br><br>
+        <b>Mini-diagnóstico automático</b><br><br>
 
-        Entre os anos de referência <b>2023</b> e <b>2024</b>, o município recebeu
-        <b>{fmt_money(v_2025)}</b> no repasse de <b>2025 (ref. 2023)</b> e <b>{fmt_money(v_2026)}</b> no repasse de
-        <b>2026 (ref. 2024)</b>.<br><br>
+        • <b>Anos de referência analisados:</b> 2023 e 2024 (repasses estimados para 2025 e 2026).<br><br>
 
-        Isso representa uma variação no período de <b>{fmt_money(delta_abs)}</b> (<b>{fmt_pct(delta_pct)}</b>).<br><br>
+        • O município recebeu <b>{fmt_money(v_2025)}</b> no repasse de <b>2025 (ref. 2023)</b>,
+        ocupando a <b>{pos_2025}ª posição</b> entre <b>{total_mun}</b> municípios.<br><br>
 
-        No ranking estadual, o município saiu da <b>{pos_2025}ª</b> posição (2025) para a <b>{pos_2026}ª</b> posição (2026),
-        com <b>ganho de {delta_pos} posições</b>.<br><br>
+        • Para <b>2026 (ref. 2024)</b>, o valor estimado é de <b>{fmt_money(v_2026)}</b>,
+        com variação positiva em relação ao ano anterior.<br><br>
 
-        A participação no total distribuído pelo Estado em 2026 é de aproximadamente <b>{fmt_pct(part_2026, 3)}</b>,
-        com variação de <b>{str(f"{delta_part:+.3f}").replace(".", ",")} p.p.</b> em relação ao ano anterior.<br><br>
+        • A variação no período foi de <b>{fmt_money(delta_abs)}</b>,
+        correspondente a <b>{fmt_pct(delta_pct)}</b> de crescimento.<br><br>
+
+        • No ranking estadual de 2026, o município ocupa a <b>{pos_2026}ª posição</b>,
+        com participação aproximada de <b>{fmt_pct(part_2026, 3)}</b> no total distribuído.<br><br>
+
+        • Em relação ao ano anterior, a participação aumentou em
+        <b>{str(f"{delta_part:+.3f}").replace(".", ",")} ponto percentual</b>.<br><br>
 
         <span style="font-size:12.5px; color:#5F6169;">
             <i>
-            Análise baseada na comparação entre os anos de referência 2023 e 2024, com repasses estimados para 2025 e 2026.
+            Análise baseada na comparação entre os anos de referência 2023 e 2024,
+            com repasses estimados para 2025 e 2026.
             Não representa a regra oficial de cálculo do ICMS Educacional.
             </i>
         </span>
@@ -987,6 +993,7 @@ st.markdown(
             f"Estimativa via modelo linear ajustado nos dados do Ano-Referência {ano_ref_sim} (R²≈{fmt_br_num(r2, 3)}). "
             "Análise baseada em dados observados no ano de referência indicado. Não representa regra oficial de cálculo."
         )
+
 
 
 
