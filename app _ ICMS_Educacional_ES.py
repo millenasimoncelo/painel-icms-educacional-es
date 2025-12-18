@@ -751,26 +751,36 @@ with tab_icms:
     st.divider()
 
     # --------------------------------------------------
-    # MINI-DIAGNÓSTICO (AJUSTADO)
-    # --------------------------------------------------
-    st.markdown(
-        f"""
-        <div style="background-color:#fafafa; padding:16px; border-radius:8px;">
+# MINI-DIAGNÓSTICO (VERSÃO MAIOR – ACORDADA)
+# --------------------------------------------------
+st.markdown(
+    f"""
+    <div style="background-color:#fafafa; padding:16px; border-radius:8px; border:1px solid #eee;">
         <b>Mini-diagnóstico:</b><br><br>
-        Entre os anos de referência <b>2023</b> e <b>2024</b>, o município apresentou
-        variação financeira de <b>{fmt_money(delta_abs)}</b> no ICMS Educacional,
-        associada à evolução do IQE e ao reposicionamento no ranking estadual
-        (<b>{pos_2025}º</b> para <b>{pos_2026}º</b> lugar).
-        <br><br>
-        <i>Análise baseada na comparação entre os anos de referência 2023 e 2024,
-        com repasses estimados para 2025 e 2026. Não representa a regra oficial
-        de cálculo do ICMS Educacional.</i>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
-    st.divider()
+        Entre os anos de referência <b>2023</b> e <b>2024</b>, o município recebeu
+        <b>{fmt_money(v_2025)}</b> no repasse de <b>2025 (ref. 2023)</b> e <b>{fmt_money(v_2026)}</b> no repasse de
+        <b>2026 (ref. 2024)</b>.<br><br>
+
+        Isso representa uma variação no período de <b>{fmt_money(delta_abs)}</b> (<b>{fmt_pct(delta_pct)}</b>).<br><br>
+
+        No ranking estadual, o município saiu da <b>{pos_2025}ª</b> posição (2025) para a <b>{pos_2026}ª</b> posição (2026),
+        com <b>ganho de {delta_pos} posições</b>.<br><br>
+
+        A participação no total distribuído pelo Estado em 2026 é de aproximadamente <b>{fmt_pct(part_2026, 3)}</b>,
+        com variação de <b>{str(f"{delta_part:+.3f}").replace(".", ",")} p.p.</b> em relação ao ano anterior.<br><br>
+
+        <span style="font-size:12.5px; color:#5F6169;">
+            <i>
+            Análise baseada na comparação entre os anos de referência 2023 e 2024, com repasses estimados para 2025 e 2026.
+            Não representa a regra oficial de cálculo do ICMS Educacional.
+            </i>
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
     # --------------------------------------------------
     # GRÁFICO – EVOLUÇÃO COM LINHA DE TENDÊNCIA
@@ -977,5 +987,6 @@ with tab_icms:
             f"Estimativa via modelo linear ajustado nos dados do Ano-Referência {ano_ref_sim} (R²≈{fmt_br_num(r2, 3)}). "
             "Análise baseada em dados observados no ano de referência indicado. Não representa regra oficial de cálculo."
         )
+
 
 
